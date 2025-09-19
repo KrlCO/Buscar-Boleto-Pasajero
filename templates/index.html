@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda de Datos de Pasajeros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        .search-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .results-table {
+            font-size: 0.9em;
+        }
+        .loading {
+            display: none;
+        }
+        .client-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .client-exists {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .client-not-exists {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="search-card">
+                        <h2 class="text-center mb-4">
+                            <i class="fas fa-search me-2"></i>
+                            Búsqueda de Datos de Pasajeros
+                        </h2>
+                        <!-- <div class="text-center mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Búsqueda optimizada para el año 2025 únicamente
+                            </small>
+                        </div> -->
+                        
+                        <form id="searchForm">
+                            <!-- Campos Obligatorios -->
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6 class="text-primary mb-2"><i class="fas fa-asterisk me-1"></i>Campos Obligatorios</h6>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="co_empr" class="form-label">
+                                        <i class="fas fa-building me-1"></i>
+                                        Código de Empresa *
+                                    </label>
+                                    <select class="form-select" id="co_empr" name="co_empr" required>
+                                        <option value="">Seleccionar empresa</option>
+                                        <option value="01">01 - PeruBus</option>
+                                        <option value="39">39 - Expreso Sur Bus</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="co_clie" class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        Código de Cliente *
+                                    </label>
+                                    <input type="number" class="form-control" id="co_clie" name="co_clie" required 
+                                           placeholder="Ej: 12345" oninput="validateNumericInput(this, 20)">
+                                </div>
+                            </div>
+                            
+                            <!-- Campos Opcionales - Fechas -->
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary mb-2"><i class="fas fa-calendar me-1"></i>Filtros de Fecha (Opcionales)</h6>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fe_docu_ini" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Fecha Documento Inicio
+                                    </label>
+                                    <input type="date" class="form-control" id="fe_docu_ini" name="fe_docu_ini" min="2025-01-01" max="2025-12-31">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fe_docu_fin" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        Fecha Documento Fin
+                                    </label>
+                                    <input type="date" class="form-control" id="fe_docu_fin" name="fe_docu_fin" min="2025-01-01" max="2025-12-31">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fe_viaj" class="form-label">
+                                        <i class="fas fa-plane me-1"></i>
+                                        Fecha de Viaje
+                                    </label>
+                                    <input type="date" class="form-control" id="fe_viaj" name="fe_viaj">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="ho_viaj" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Hora de Viaje
+                                    </label>
+                                    <input type="time" class="form-control" id="ho_viaj" name="ho_viaj" maxlength="6">
+                                </div>
+                            </div>
+                            
+                            <!-- Campos Opcionales - Destinos y Rutas -->
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary mb-2"><i class="fas fa-route me-1"></i>Destinos y Rutas (Opcionales)</h6>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="co_rumb" class="form-label">
+                                        <i class="fas fa-compass me-1"></i>
+                                        Código de Rumbo
+                                    </label>
+                                    <select class="form-control" id="co_rumb" name="co_rumb">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="NOR">NOR</option>
+                                        <option value="SUR">SUR</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="co_dest_orig" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        Destino Origen
+                                    </label>
+                                    <input type="number" class="form-control" id="co_dest_orig" name="co_dest_orig" 
+                                           placeholder="Ej: 12" min="1" max="99" oninput="validateNumericInput(this, 2)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="co_dest_fina" class="form-label">
+                                        <i class="fas fa-flag-checkered me-1"></i>
+                                        Destino Final
+                                    </label>
+                                    <input type="number" class="form-control" id="co_dest_fina" name="co_dest_fina" 
+                                           placeholder="Ej: 34" min="1" max="99" oninput="validateNumericInput(this, 2)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="ti_serv" class="form-label">
+                                        <i class="fas fa-concierge-bell me-1"></i>
+                                        Tipo de Servicio
+                                    </label>
+                                    <input type="text" class="form-control" id="ti_serv" name="ti_serv" 
+                                           placeholder="Ej: A" maxlength="1" pattern="[A-Za-z]" oninput="validateSingleLetter(this)">
+                                </div>
+                            </div>
+                            
+                            <!-- Campos Opcionales - Datos del Pasajero -->
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary mb-2"><i class="fas fa-users me-1"></i>Datos del Pasajero (Opcionales)</h6>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="no_clie" class="form-label">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        Nombre Cliente
+                                    </label>
+                                    <input type="text" class="form-control" id="no_clie" name="no_clie" 
+                                           placeholder="Nombre del cliente" maxlength="255" pattern="[A-Za-zÀ-ÿ\s]+" oninput="validateTextOnly(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="nu_dnis" class="form-label">
+                                        <i class="fas fa-id-card me-1"></i>
+                                        DNI / Pasaporte
+                                    </label>
+                                    <input type="text" class="form-control" id="nu_dnis" name="nu_dnis" 
+                                           placeholder="DNI o Pasaporte" maxlength="20" oninput="validateAlphanumeric(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="nu_rucs" class="form-label">
+                                        <i class="fas fa-id-badge me-1"></i>
+                                        RUC
+                                    </label>
+                                    <input type="number" class="form-control" id="nu_rucs" name="nu_rucs" 
+                                           placeholder="Número de RUC" oninput="validateNumericInput(this, 20)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="no_pasa" class="form-label">
+                                        <i class="fas fa-passport me-1"></i>
+                                        Nombre Pasajero
+                                    </label>
+                                    <input type="text" class="form-control" id="no_pasa" name="no_pasa" 
+                                           placeholder="Nombre del pasajero" maxlength="255" pattern="[A-Za-zÀ-ÿ\s]+" oninput="validateTextOnly(this)">
+                                </div>
+                            </div>
+                            
+                            <!-- Campos Opcionales - Detalles del Viaje -->
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary mb-2"><i class="fas fa-ticket-alt me-1"></i>Detalles del Viaje (Opcionales)</h6>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="nu_secu" class="form-label">
+                                        <i class="fas fa-hashtag me-1"></i>
+                                        Número de Salida
+                                    </label>
+                                    <input type="number" class="form-control" id="nu_secu" name="nu_secu" 
+                                           placeholder="Ej: 123" min="1" max="9999" oninput="validateNumericInput(this, 4)">
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="nu_asie" class="form-label">
+                                        <i class="fas fa-chair me-1"></i>
+                                        Número de Asiento
+                                    </label>
+                                    <input type="number" class="form-control" id="nu_asie" name="nu_asie" 
+                                           placeholder="Ej: 15" min="1" max="99" oninput="validateNumericInput(this, 2)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="ti_meto_pago" class="form-label">
+                                        <i class="fas fa-credit-card me-1"></i>
+                                        Método de Pago
+                                    </label>
+                                    <select class="form-control" id="ti_meto_pago" name="ti_meto_pago">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="Yap">Yap</option>
+                                        <option value="EFE">EFE</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones de Acción -->
+                            <div class="row">
+                                <div class="col-md-12 d-flex justify-content-center gap-2">
+                                    <button type="submit" class="btn btn-primary me-2" id="searchButton">
+                                        <i class="fas fa-search me-1"></i>
+                                        Buscar
+                                    </button>
+                                    <button type="button" id="cancelButton" class="btn btn-danger me-2" onclick="cancelSearch()" style="display: none;" title="Cancelar búsqueda">
+                                        <i class="fas fa-times me-1"></i>
+                                        Cancelar
+                                    </button>
+                                    <button type="button" id="clearFieldsBtn" class="btn btn-outline-secondary" title="Limpiar campos">
+                                        <i class="fas fa-eraser me-1"></i>
+                                        Limpiar
+                                    </button>
+                                </div>
+                            </div>
+
+                        </form>
+                        
+                        <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p id="loadingMessage" class="mt-2 text-muted">Buscando datos del pasajero...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultados -->
+                    <div id="results" class="search-card" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>Resultados de Búsqueda</h5>
+                            <div>
+                                <button type="button" id="restoreSearchBtn" class="btn btn-outline-info btn-sm me-2" style="display: none;" title="Restaurar última búsqueda">
+                                    <i class="fas fa-history me-1"></i>Restaurar Búsqueda
+                                </button>
+                                <button type="button" id="clearStorageBtn" class="btn btn-outline-warning btn-sm" title="Limpiar búsqueda guardada">
+                                    <i class="fas fa-trash me-1"></i>Limpiar Guardado
+                                </button>
+                            </div>
+                        </div>
+                        <div id="clientStatus"></div>
+                        <div id="searchInfo"></div>
+                        <div id="resultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Funciones de localStorage
+        function saveSearchToStorage(searchData, result) {
+            const searchRecord = {
+                searchData: searchData,
+                result: result,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('lastPassengerSearch', JSON.stringify(searchRecord));
+        }
+        
+        function loadSearchFromStorage() {
+            const stored = localStorage.getItem('lastPassengerSearch');
+            return stored ? JSON.parse(stored) : null;
+        }
+        
+        function clearSearchStorage() {
+            localStorage.removeItem('lastPassengerSearch');
+            document.getElementById('restoreSearchBtn').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        }
+        
+        function clearFormFields() {
+            // Campos obligatorios
+            document.getElementById('co_empr').value = '';
+            document.getElementById('co_clie').value = '';
+            
+            // Campos opcionales - Fechas
+            document.getElementById('fe_docu_ini').value = '';
+            document.getElementById('fe_docu_fin').value = '';
+            document.getElementById('fe_viaj').value = '';
+            document.getElementById('ho_viaj').value = '';
+            
+            // Campos opcionales - Destinos y Rutas
+            document.getElementById('co_rumb').selectedIndex = 0; // Reset combobox
+            document.getElementById('co_dest_orig').value = '';
+            document.getElementById('co_dest_fina').value = '';
+            document.getElementById('ti_serv').value = '';
+            
+            // Campos opcionales - Datos del Pasajero
+            document.getElementById('no_clie').value = '';
+            document.getElementById('nu_dnis').value = '';
+            document.getElementById('nu_rucs').value = '';
+            document.getElementById('no_pasa').value = '';
+            
+            // Campos opcionales - Detalles del Viaje
+            document.getElementById('nu_secu').value = '';
+            document.getElementById('nu_asie').value = '';
+            document.getElementById('ti_meto_pago').selectedIndex = 0; // Reset combobox
+        }
+        
+        function restoreSearchData(searchData) {
+            // Campos obligatorios
+            document.getElementById('co_empr').value = searchData.co_empr || '';
+            document.getElementById('co_clie').value = searchData.co_clie || '';
+            
+            // Campos opcionales - Fechas
+            document.getElementById('fe_docu_ini').value = searchData.fe_docu_ini || '';
+            document.getElementById('fe_docu_fin').value = searchData.fe_docu_fin || '';
+            document.getElementById('fe_viaj').value = searchData.fe_viaj || '';
+            document.getElementById('ho_viaj').value = searchData.ho_viaj || '';
+            
+            // Campos opcionales - Destinos y Rutas
+            if (searchData.co_rumb) {
+                const rumbSelect = document.getElementById('co_rumb');
+                for (let i = 0; i < rumbSelect.options.length; i++) {
+                    if (rumbSelect.options[i].value === searchData.co_rumb) {
+                        rumbSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                document.getElementById('co_rumb').selectedIndex = 0;
+            }
+            document.getElementById('co_dest_orig').value = searchData.co_dest_orig || '';
+            document.getElementById('co_dest_fina').value = searchData.co_dest_fina || '';
+            document.getElementById('ti_serv').value = searchData.ti_serv || '';
+            
+            // Campos opcionales - Datos del Pasajero
+            document.getElementById('no_clie').value = searchData.no_clie || '';
+            document.getElementById('nu_dnis').value = searchData.nu_dnis || '';
+            document.getElementById('nu_rucs').value = searchData.nu_rucs || '';
+            document.getElementById('no_pasa').value = searchData.no_pasa || '';
+            
+            // Campos opcionales - Detalles del Viaje
+            document.getElementById('nu_secu').value = searchData.nu_secu || '';
+            document.getElementById('nu_asie').value = searchData.nu_asie || '';
+            if (searchData.ti_meto_pago) {
+                const pagoSelect = document.getElementById('ti_meto_pago');
+                for (let i = 0; i < pagoSelect.options.length; i++) {
+                    if (pagoSelect.options[i].value === searchData.ti_meto_pago) {
+                        pagoSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                document.getElementById('ti_meto_pago').selectedIndex = 0;
+            }
+        }
+        
+        // Variable global para controlar la búsqueda
+        let searchController = null;
+
+        function showLoading(message = 'Buscando datos del pasajero...') {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('searchButton').style.display = 'none';
+            document.getElementById('cancelButton').style.display = 'inline-block';
+        }
+        
+        function hideLoading() {
+             document.getElementById('loadingSpinner').style.display = 'none';
+             document.getElementById('searchButton').style.display = 'inline-block';
+             document.getElementById('cancelButton').style.display = 'none';
+         }
+
+        // Función para cancelar búsqueda
+        function cancelSearch() {
+            if (searchController) {
+                searchController.abort();
+                searchController = null;
+            }
+            hideLoading();
+            displayError('Búsqueda cancelada por el usuario');
+        }
+         
+        // Funciones de validación
+        function validateNumericInput(input, maxDigits) {
+            // Remover caracteres no numéricos
+            input.value = input.value.replace(/[^0-9]/g, '');
+            // Limitar la cantidad de dígitos
+            if (input.value.length > maxDigits) {
+                input.value = input.value.slice(0, maxDigits);
+            }
+        }
+
+        function validateSingleLetter(input) {
+            // Solo permitir una letra A-Z
+            input.value = input.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 1);
+        }
+
+        function validateTextOnly(input) {
+            // Solo permitir letras, espacios y caracteres acentuados
+            input.value = input.value.replace(/[^A-Za-zÀ-ÿ\s]/g, '');
+        }
+
+        function validateAlphanumeric(input) {
+            // Permitir letras y números (para DNI/Pasaporte)
+            input.value = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        }
+         
+         function generateTableHTML(data) {
+             if (!data || data.length === 0) {
+                 return '<p class="text-muted">No se encontraron resultados.</p>';
+             }
+             
+             // Obtener todas las columnas que devuelve el stored procedure
+             const allColumns = Object.keys(data[0]);
+             
+             // Reorganizar columnas: poner "Número Doc." (NU_DOCU) primero
+             const orderedColumns = [];
+             
+             // Primero agregar NU_DOCU si existe
+             if (allColumns.includes('NU_DOCU')) {
+                 orderedColumns.push('NU_DOCU');
+             }
+             
+             // Luego agregar las demás columnas en el orden original, excluyendo NU_DOCU
+             allColumns.forEach(field => {
+                 if (field !== 'NU_DOCU') {
+                     orderedColumns.push(field);
+                 }
+             });
+             
+             let html = '<div class="table-responsive"><table class="table table-striped table-hover">';
+             
+             // Encabezados
+             html += '<thead class="table-dark"><tr>';
+             orderedColumns.forEach(field => {
+                 html += `<th>${translateFieldName(field)}</th>`;
+             });
+             html += '</tr></thead>';
+             
+             // Filas de datos
+             html += '<tbody>';
+             data.forEach(row => {
+                 html += '<tr>';
+                 orderedColumns.forEach(field => {
+                     const value = formatValue(row[field], field);
+                     html += `<td>${value}</td>`;
+                 });
+                 html += '</tr>';
+             });
+             html += '</tbody></table></div>';
+             
+             return html;
+         }
+        
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const searchData = {
+                // Campos obligatorios
+                co_empr: formData.get('co_empr'),
+                co_clie: formData.get('co_clie'),
+                
+                // Campos opcionales - Fechas
+                fe_docu_ini: formData.get('fe_docu_ini'),
+                fe_docu_fin: formData.get('fe_docu_fin'),
+                fe_viaj: formData.get('fe_viaj'),
+                ho_viaj: formData.get('ho_viaj'),
+                
+                // Campos opcionales - Destinos y Rutas
+                co_rumb: formData.get('co_rumb'),
+                co_dest_orig: formData.get('co_dest_orig'),
+                co_dest_fina: formData.get('co_dest_fina'),
+                ti_serv: formData.get('ti_serv'),
+                
+                // Campos opcionales - Datos del Pasajero
+                no_clie: formData.get('no_clie'),
+                nu_dnis: formData.get('nu_dnis'),
+                nu_rucs: formData.get('nu_rucs'),
+                no_pasa: formData.get('no_pasa'),
+                
+                // Campos opcionales - Detalles del Viaje
+                nu_secu: formData.get('nu_secu'),
+                nu_asie: formData.get('nu_asie'),
+                ti_meto_pago: formData.get('ti_meto_pago')
+            };
+            
+            // Convertir fechas al formato YYYYMMDD si están presentes
+            const searchDataForAPI = { ...searchData };
+            if (searchDataForAPI.fe_docu_ini) {
+                searchDataForAPI.fe_docu_ini = searchDataForAPI.fe_docu_ini.replace(/-/g, '');
+            }
+            if (searchDataForAPI.fe_docu_fin) {
+                searchDataForAPI.fe_docu_fin = searchDataForAPI.fe_docu_fin.replace(/-/g, '');
+            }
+            if (searchDataForAPI.fe_viaj) {
+                searchDataForAPI.fe_viaj = searchDataForAPI.fe_viaj.replace(/-/g, '');
+            }
+            
+            // Contar campos opcionales completados
+            const optionalFields = [
+                'fe_docu_ini', 'fe_docu_fin', 'fe_viaj', 'ho_viaj',
+                'co_rumb', 'co_dest_orig', 'co_dest_fina', 'ti_serv',
+                'no_clie', 'nu_dnis', 'nu_rucs', 'no_pasa',
+                'nu_secu', 'nu_asie', 'ti_meto_pago'
+            ];
+            
+            const completedOptionalFields = optionalFields.filter(field => 
+                searchData[field] && searchData[field].trim() !== ''
+            ).length;
+            
+            // Mostrar mensaje de loading apropiado
+            let loadingMessage = 'Buscando datos del pasajero...';
+            if (completedOptionalFields <= 2) {
+                loadingMessage = 'Buscando datos del pasajero... Esto puede tomar un momento con pocos criterios de búsqueda.';
+            }
+            
+            // Mostrar loading
+            showLoading(loadingMessage)
+            
+            // Crear controlador para cancelar la búsqueda
+            searchController = new AbortController();
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(searchDataForAPI),
+                    signal: searchController.signal
+                });
+                
+                const result = await response.json();
+                
+                // Ocultar loading
+                hideLoading();
+                
+                if (result.success) {
+                    // Guardar búsqueda exitosa en localStorage
+                    saveSearchToStorage(searchDataForAPI, result);
+                    displayResults(result);
+                    
+                    // Limpiar campos de búsqueda automáticamente después de búsqueda exitosa
+                    clearFormFields();
+                } else {
+                    const errorMessage = result.message || 'No se encontraron resultados. Verifique que los datos sean correctos e intente nuevamente. Si los datos son correctos, no se encontró ningún registro en la base de datos.';
+                    displayError(errorMessage);
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Búsqueda cancelada');
+                    return; // No mostrar error si fue cancelada intencionalmente
+                }
+                hideLoading();
+                displayError('Error de conexión: ' + error.message);
+            } finally {
+                searchController = null;
+            }
+        });
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const clientStatusDiv = document.getElementById('clientStatus');
+            const searchInfoDiv = document.getElementById('searchInfo');
+            const resultsContentDiv = document.getElementById('resultsContent');
+            
+            // Estado del cliente - Solo mostrar si no hay resultados o si el cliente existe
+            let clientStatusHtml = '';
+            if (result.results.length > 0) {
+                // Si hay resultados, mostrar mensaje positivo
+                clientStatusHtml = `
+                    <div class="client-exists">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Búsqueda completada exitosamente
+                    </div>
+                `;
+            } else {
+                // Si no hay resultados, mostrar el estado de validación del cliente
+                const statusClass = result.client_validation.exists ? 'client-exists' : 'client-not-exists';
+                const statusIcon = result.client_validation.exists ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+                clientStatusHtml = `
+                    <div class="${statusClass}">
+                        <i class="${statusIcon} me-2"></i>
+                        ${result.client_validation.message}
+                    </div>
+                `;
+            }
+            clientStatusDiv.innerHTML = clientStatusHtml;
+            
+            // Información de búsqueda
+            searchInfoDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Parámetros de Búsqueda:</h6>
+                    <strong>Cliente:</strong> ${result.search_params.co_clie}<br>
+                    <strong>Período:</strong> ${result.search_params.fecha_inicio} - ${result.search_params.fecha_fin}<br>
+                    <strong>Registros encontrados:</strong> ${result.total_records}
+                </div>
+            `;
+            
+            // Resultados
+            if (result.results.length === 0) {
+                resultsContentDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        No se encontraron datos para los criterios especificados.
+                    </div>
+                `;
+            } else {
+                // Generar tabla con todos los resultados del stored procedure
+                const tableHtml = generateTableHTML(result.results);
+                resultsContentDiv.innerHTML = tableHtml;
+            }
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        function displayError(message) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContentDiv = document.getElementById('resultsContent');
+            
+            document.getElementById('clientStatus').innerHTML = '';
+            document.getElementById('searchInfo').innerHTML = '';
+            
+            resultsContentDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Función para traducir nombres de campos
+        function translateFieldName(fieldName) {
+            const fieldTranslations = {
+                'CO_EMPR': 'Código Empresa',
+                'CO_CLIE': 'Código Cliente',
+                'NO_CLIE': 'Nombre Cliente',
+                'NU_DNIS': 'DNI',
+                'NU_RUCS': 'RUC',
+                'NO_PASA': 'Nombre Pasajero',
+                'NU_TELF': 'Teléfono',
+                'TI_DOCU': 'Tipo Doc.',
+                'NU_DOCU': 'Número Doc.',
+                'FE_DOCU': 'Fecha Doc.',
+                'FE_VIAJ': 'Fecha Viaje',
+                'HO_VIAJ': 'Hora Viaje',
+                'CO_RUMB': 'Código Rumbo',
+                'CO_DEST_ORIG': 'Origen',
+                'CO_DEST_FINA': 'Destino',
+                'TI_SERV': 'Tipo Servicio',
+                'NU_SECU': 'Número Secuencial',
+                'NU_ASIE': 'Asiento',
+                'TI_METO_PAGO': 'Método Pago',
+                'CO_MONE': 'Moneda',
+                'IM_TOTA': 'Importe Total',
+                'IM_PAGA': 'Importe Pagado',
+                'CO_ESTA_DOCU': 'Estado Doc.',
+                'ST_RETO': 'Retorno',
+                'FE_RETO': 'Fecha Retorno',
+                'HO_RETO': 'Hora Retorno',
+                'DE_DIRE_ORIG': 'Dirección Origen',
+                'DE_DIRE_DEST': 'Dirección Destino',
+                'AP_CONS': 'Apellido Consignatario',
+                'NO_CONS': 'Nombre Consignatario',
+                'NU_DNIS_CONS': 'DNI Consignatario',
+                'DE_OBSE_0001': 'Observación 1',
+                'DE_OBSE_0002': 'Observación 2',
+                'DE_MERC': 'Descripción Mercancía',
+                'CO_USUA_CREA': 'Usuario Creación',
+                'FE_USUA_CREA': 'Fecha Creación',
+                'CO_USUA_MODI': 'Usuario Modificación',
+                'FE_USUA_MODI': 'Fecha Modificación'
+            };
+            
+            return fieldTranslations[fieldName] || fieldName;
+        }
+        
+        // Función para formatear valores
+        function formatValue(value, fieldName) {
+            if (value === null || value === undefined || value === '') {
+                return '';
+            }
+            
+            // Formatear valores monetarios
+            if (fieldName.startsWith('IM_') && value) {
+                return parseFloat(value).toFixed(2);
+            }
+            
+            // Para fechas, el backend ya las envía formateadas como DD/MM/YYYY
+            // Solo necesitamos verificar que no sean null o vacías
+            if (fieldName.startsWith('FE_') && value) {
+                // Si el valor ya viene formateado del backend (DD/MM/YYYY), lo devolvemos tal como está
+                if (typeof value === 'string' && value.includes('/')) {
+                    return value;
+                }
+                // Si viene como fecha ISO, la formateamos
+                try {
+                    const date = new Date(value);
+                    if (!isNaN(date.getTime())) {
+                        return date.toLocaleDateString('es-ES');
+                    }
+                } catch (e) {
+                    // Si hay error, devolver el valor original
+                    return value;
+                }
+            }
+            
+            return value;
+        }
+        
+        // Función para traducir nombres de campos (alias para compatibilidad)
+        function getFieldDisplayName(fieldName) {
+            return translateFieldName(fieldName);
+        }
+        
+        // Event listeners para botones
+        document.getElementById('clearFieldsBtn').addEventListener('click', function() {
+            clearFormFields();
+        });
+        
+        document.getElementById('restoreSearchBtn').addEventListener('click', function() {
+            const stored = loadSearchFromStorage();
+            if (stored) {
+                restoreSearchData(stored.searchData);
+                displayResults(stored.result);
+            }
+        });
+        
+        document.getElementById('clearStorageBtn').addEventListener('click', function() {
+            if (confirm('¿Está seguro de que desea limpiar la búsqueda guardada?')) {
+                clearSearchStorage();
+                alert('Búsqueda guardada eliminada.');
+            }
+        });
+        
+        // Establecer fecha por defecto y verificar búsquedas guardadas
+        window.addEventListener('load', function() {
+            // Establecer fechas por defecto para el año 2025
+            document.getElementById('fe_docu_ini').value = '2025-01-01';
+            document.getElementById('fe_docu_fin').value = '2025-12-31';
+            
+            // Verificar si hay una búsqueda guardada
+            const stored = loadSearchFromStorage();
+            if (stored) {
+                document.getElementById('restoreSearchBtn').style.display = 'inline-block';
+                
+                // Restaurar automáticamente los datos del formulario
+                restoreSearchData(stored.searchData);
+                
+                // Mostrar automáticamente los resultados guardados
+                displayResults(stored.result);
+                
+                // Mostrar notificación de búsqueda restaurada
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-success alert-dismissible fade show mt-3';
+                notification.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Búsqueda restaurada automáticamente:</strong> Realizada el ${new Date(stored.timestamp).toLocaleString('es-ES')}.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const searchCard = document.querySelector('.search-card');
+                searchCard.appendChild(notification);
+                
+                // Auto-ocultar notificación después de 7 segundos
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 7000);
+            }
+        });
+    </script>
+</body>
+</html>
