@@ -1,0 +1,90 @@
+# Archivos de configuración con información sensible
+config.py
+.env
+web.config
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Entornos virtuales
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Archivos de backup
+*.bak
+*.backup
+
+# Archivos específicos de Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# Archivos de certificados y claves
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Archivos de configuración específicos del servidor
+iis_config.xml
+server_config.json
+
+# Archivos de datos sensibles
+data/
+uploads/
+downloads/
+
+# Archivos de testing con datos reales
+test_data/
+sample_data/

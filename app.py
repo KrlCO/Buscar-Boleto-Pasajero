@@ -7,6 +7,20 @@ from config import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Validar configuración al iniciar la aplicación
+try:
+    Config.validate_config()
+    print("✓ Configuración validada correctamente")
+except ValueError as e:
+    print(f"❌ Error de configuración: {e}")
+    print("💡 Asegúrate de:")
+    print("   1. Crear un archivo .env basado en .env.example")
+    print("   2. O configurar las variables de entorno en tu sistema")
+    print("   3. Revisar el archivo config.example.py para más detalles")
+    # En desarrollo, permitir continuar con valores por defecto
+    if not Config.DEBUG:
+        raise
+
 class DatabaseConnection:
     def __init__(self):
         self.connection_string = (

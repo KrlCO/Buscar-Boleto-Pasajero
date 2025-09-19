@@ -3,12 +3,12 @@ setlocal enabledelayedexpansion
 
 echo ========================================
 echo Verificacion de Despliegue en IIS
-echo Servidor: 10.10.10.32
+echo Servidor: [CONFIGURAR_IP_SERVIDOR]
 echo ========================================
 echo.
 
 set APP_DIR=C:\inetpub\wwwroot\BuscaDatosPasajero
-set SERVER_IP=10.10.10.32
+set SERVER_IP=[CONFIGURAR_IP_SERVIDOR]
 set APP_PORT=9547
 
 echo [1/7] Verificando archivos de aplicacion...
