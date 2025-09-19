@@ -6,8 +6,8 @@ Aplicación web desarrollada en Python + Flask para buscar datos de pasajeros en
 
 - **Búsqueda por código de cliente (CO_CLIE)**: Parámetro principal requerido
 - **Filtros avanzados**: Búsqueda por DNI, tipo de documento y rango de fechas
-- **Validación de cliente**: Verifica existencia en tabla TMCLIE
-- **Búsqueda principal**: Consulta en tabla TCDOCU_CLIE
+- **Validación de cliente**: Verifica existencia en tabla tabla maestra de clientes
+- **Búsqueda principal**: Consulta en tablas de ventas de boletos a clientes que compraron en agencia, ruta y si tiene un boleto de carga asociado
 - **Interfaz web responsive**: Diseño moderno con Bootstrap 5
 - **Persistencia de datos**: Los resultados se guardan automáticamente en localStorage
 - **Restauración automática**: Al recargar la página se restauran automáticamente los últimos resultados
@@ -57,8 +57,8 @@ Este script automáticamente:
 ## 🔧 Configuración de Base de Datos
 
 La aplicación requiere acceso a una base de datos SQL Server con las siguientes tablas:
-- `TMCLIE` - Tabla de clientes
-- `TCDOCU_CLIE` - Tabla de documentos de clientes
+- Tabla de clientes
+- Tabla de documentos de clientes
 
 **Configuración requerida:**
 - SQL Server con ODBC Driver 17 instalado
@@ -163,7 +163,7 @@ deploy_complete_server_2022.bat
 
 ## Uso
 
-1. **Código de Cliente**: Ingresa el CO_CLIE del pasajero (campo requerido)
+1. **Código de Cliente**: Ingresa el código del pasajero (campo requerido)
 2. **Filtros opcionales**: 
    - **DNI**: Número de documento de identidad
    - **Tipo de Documento**: Seleccionar tipo específico
@@ -331,7 +331,7 @@ Buscar-Boleto-Pasajero/
 
 Este proyecto es un ejemplo educativo. Úsalo bajo tu propia responsabilidad.
 
-## 📞 Soporte
+## Support
 
 Si tienes problemas con la configuración:
 
